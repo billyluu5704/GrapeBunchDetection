@@ -1,0 +1,33 @@
+# Grape Bunch Detection - shared dependencies for both notebooks (tested on Python 3.13)
+# NOTE: for an NVIDIA GPU, install a CUDA build of torch/torchvision first (see README.md),
+# then run: pip install -r requirements.txt
+
+# --- Deep learning notebook (Deep Learning/) ---
+ultralytics        # YOLO11 training / inference (also pulls in torchvision)
+torch
+sahi               # tiled (sliced) inference
+grad-cam           # imported as pytorch_grad_cam
+ipympl             # interactive matplotlib widget backend (manual annotation tool)
+
+# --- Traditional ML notebook (Machine Learning/) ---
+scikit-learn
+scikit-image       # skimage.feature: LBP / HOG / Gabor / Haralick features
+scipy
+xgboost
+shap
+seaborn
+joblib
+
+# --- Shared ---
+numpy
+pandas
+matplotlib
+opencv-python
+Pillow
+tqdm
+
+# --- Jupyter ---
+jupyter
+notebook
+ipywidgets
+jupyterlab_widgets
