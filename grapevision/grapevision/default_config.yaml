@@ -1,0 +1,38 @@
+# Package defaults. Machine-specific settings (where the photos live) go in a project config under
+# configs/, passed with --config and layered on top of this file. Relative paths resolve against the
+# grapevision/ project root in a source checkout, or the working directory when installed as a package.
+
+paths:
+  captures: []                       # field captures laid out as <capture>/rowN/SectionM/sequenceK.jpg
+  catalog_csv: outputs/catalog.csv
+  output_dir: outputs
+
+split:
+  level: section                     # group unit for leakage-free splits: image | section | row
+  ratios: [0.6, 0.2, 0.2]            # train / val / test, by image count
+  seed: 42
+
+annotations:
+  coco_json: null                    # CVAT "COCO 1.0" export with per-box attributes
+  row_attribute: row                 # values: near | far
+  quality_attribute: quality         # values: full | sparse | damaged | occluded
+
+detector:
+  weights: yolo11m.pt
+  imgsz: 640                         # West_Zone2 exports are ~1215x911, so 1024 would mostly upsample
+  tile_size: 640
+  tile_overlap: 0.25
+  conf_floor: 0.05                   # inference keeps everything above this; the real threshold is tuned on val
+  conf: 0.25                         # replace with the value eval.tune_threshold picks on the val split
+  device: "cuda:0"
+
+row_filter:
+  method: depth                      # depth | none
+  depth_model: depth-anything/Depth-Anything-V2-Small-hf
+  higher_is_closer: true             # Depth Anything outputs relative inverse depth; verify on one image
+  min_separability: 0.85             # Otsu effectiveness needed before a "far" group is declared
+  box_inner: 0.5                     # fraction of the box (centered) used for the depth median
+
+quality:
+  method: accept_all                 # accept_all | size
+  min_area_frac: 0.002               # size baseline: boxes smaller than this fraction of the image are "sparse"
