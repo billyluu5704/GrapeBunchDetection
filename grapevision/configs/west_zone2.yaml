@@ -1,0 +1,7 @@
+# Project config for the 2026-09-11 West Zone 2 capture (rows 5 and 7). Layered on top of the package
+# defaults in grapevision/default_config.yaml; only settings that differ need to be listed here.
+#   python scripts/build_catalog.py --config configs/west_zone2.yaml
+
+paths:
+  captures:
+    - D:/download/West_Zone2_09_11_2026

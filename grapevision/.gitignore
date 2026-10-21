@@ -1,0 +1,22 @@
+# data and model artifacts
+outputs/
+runs/
+datasets/
+*.pt
+
+# build
+build/
+dist/
+*.egg-info/
+
+# tool caches and reports
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+junit.xml
+
+# local environments
+.venv/

@@ -1,0 +1,58 @@
+name: grapevision release
+
+# Push a tag like grapevision-v0.2.0 (matching grapevision/__init__.py's __version__) to test, build and
+# publish a GitHub Release with the wheel and sdist attached.
+on:
+  push:
+    tags: ["grapevision-v*"]
+
+permissions:
+  contents: write   # create the release
+
+defaults:
+  run:
+    working-directory: grapevision
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Tag must match the package version
+        run: |
+          version=$(python -c "import re, pathlib; print(re.search(r'__version__ = \"(.+?)\"', pathlib.Path('grapevision/__init__.py').read_text())[1])")
+          if [ "grapevision-v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package version $version"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Test before releasing
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pytest -m "not gpu"
+
+      - run: python -m build
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "::error::CHANGELOG.md has no section for [$VERSION]"
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "grapevision $VERSION" --notes-file "$RUNNER_TEMP/notes.md"

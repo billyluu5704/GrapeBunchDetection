@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grapevision"
+dynamic = ["version"]
+description = "Grape bunch detection and yield counting: detect -> near-row filter -> quality -> count"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "Pillow>=10.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+detect = ["ultralytics>=8.3", "sahi>=0.11.20"]   # YOLO training + SAHI tiled inference (install a CUDA torch build first)
+depth = ["transformers>=4.45", "torch>=2.2"]      # Depth Anything V2 for the near/far row filter
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-PyYAML",
+    "build>=1.2",
+    "pre-commit>=3.8",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "grapevision.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["grapevision*"]
+
+[tool.setuptools.package-data]
+grapevision = ["py.typed", "default_config.yaml"]
+
+# ---------------------------------------------------------------- lint / format
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",     # pycodestyle
+    "F",          # pyflakes
+    "I",          # import sorting
+    "B",          # bugbear
+    "UP",         # pyupgrade
+    "SIM",        # simplify
+    "C4",         # comprehensions
+    "PT",         # pytest style
+    "RUF",        # ruff-specific
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["grapevision"]
+
+# ---------------------------------------------------------------- types
+[tool.mypy]
+python_version = "3.10"
+packages = ["grapevision"]
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+# Optional GPU backends: not installed in CI, imported lazily inside functions.
+module = ["sahi.*", "transformers.*", "ultralytics.*", "torch.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------- tests
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = ["error"]
+markers = [
+    "gpu: needs the optional detect/depth extras and a CUDA device (deselect with -m 'not gpu')",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["grapevision"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.$",
+]
