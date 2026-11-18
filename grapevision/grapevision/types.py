@@ -9,13 +9,15 @@ NEAR = "near"
 FAR = "far"
 ROW_VALUES = (NEAR, FAR)
 
-# Bunch quality. Only FULL bunches count toward yield. OCCLUDED means "can't judge" (e.g. half hidden
-# behind a leaf) and must not be lumped in with SPARSE, or the quality model learns occlusion = sparse.
+# Bunch quality. FULL and OCCLUDED bunches count toward yield; SPARSE and DAMAGED do not. OCCLUDED means
+# "can't judge fullness" (e.g. half hidden behind a leaf) and must not be lumped in with SPARSE, or the
+# quality model learns occlusion = sparse.
 FULL = "full"
 SPARSE = "sparse"
 DAMAGED = "damaged"
 OCCLUDED = "occluded"
 QUALITY_VALUES = (FULL, SPARSE, DAMAGED, OCCLUDED)
+COUNTED_QUALITIES = (FULL, OCCLUDED)
 
 
 @dataclass(frozen=True)
@@ -91,4 +93,4 @@ class Detection:
 
     @property
     def countable(self) -> bool:
-        return self.near and self.quality == FULL
+        return self.near and self.quality in COUNTED_QUALITIES

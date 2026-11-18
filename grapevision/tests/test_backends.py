@@ -7,7 +7,7 @@ from PIL import Image
 
 from grapevision.config import load_config
 from grapevision.count import build_pipeline
-from grapevision.detect import SahiDetector, train_detector, write_data_yaml
+from grapevision.detect import FullImageDetector, SahiDetector, train_detector, write_data_yaml
 from grapevision.quality import AcceptAllQuality, SizeBaselineQuality
 from grapevision.rowfilter import DepthRowFilter, KeepAllRowFilter
 from grapevision.rowfilter.depth import DepthAnythingEstimator
@@ -22,6 +22,23 @@ def test_sahi_detector(monkeypatch):
     assert calls["init"]["confidence_threshold"] == 0.01
     assert calls["image_shape"] == (48, 64, 3)  # pixels passed, not a path
     assert calls["predict"]["slice_width"] == 320
+
+
+def test_sahi_detector_postprocess_options(monkeypatch):
+    calls = install_fake_sahi(monkeypatch, [(1, 2, 30, 40, 0.8)])
+    detector = SahiDetector("best.pt", device="cpu", postprocess_type="GREEDYNMM", postprocess_match_threshold=0.3)
+    detector(Image.new("RGB", (64, 48)))
+    assert calls["predict"]["postprocess_type"] == "GREEDYNMM"
+    assert calls["predict"]["postprocess_match_threshold"] == 0.3
+
+
+def test_full_image_detector(monkeypatch):
+    calls = install_fake_ultralytics(monkeypatch)
+    detector = FullImageDetector("best.pt", imgsz=800, conf_floor=0.02, device="cpu")
+    detections = detector(Image.new("RGB", (64, 48)))
+    assert [(d.box, d.score) for d in detections] == [(Box(1, 2, 30, 40), 0.7)]
+    assert calls["predict"]["imgsz"] == 800
+    assert calls["predict"]["conf"] == 0.02
 
 
 def test_depth_estimator_resizes_to_input(monkeypatch):
