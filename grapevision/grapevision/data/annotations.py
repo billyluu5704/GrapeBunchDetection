@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from grapevision.types import FAR, FULL, NEAR, QUALITY_VALUES, ROW_VALUES, Box
+from grapevision.types import COUNTED_QUALITIES, FAR, NEAR, QUALITY_VALUES, ROW_VALUES, Box
 
 
 @dataclass
@@ -27,7 +27,7 @@ class BunchLabel:
 
     @property
     def countable(self) -> bool:
-        return self.row == NEAR and self.quality == FULL
+        return self.row == NEAR and self.quality in COUNTED_QUALITIES
 
 
 @dataclass

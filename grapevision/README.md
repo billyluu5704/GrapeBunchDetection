@@ -3,13 +3,13 @@
 [![grapevision CI](https://github.com/hoangnhatduyle/GrapeBunchDetection/actions/workflows/grapevision-ci.yml/badge.svg)](https://github.com/hoangnhatduyle/GrapeBunchDetection/actions/workflows/grapevision-ci.yml)
 ![python](https://img.shields.io/badge/python-3.10--3.14-blue) ![types](https://img.shields.io/badge/mypy-strict-blue) ![coverage gate](https://img.shields.io/badge/coverage%20gate-90%25-brightgreen)
 
-Counts grape bunches toward yield on the **surveyed row only**, keeping only bunches that are **large and
-pretty full**. It replaces the notebook in `../Deep Learning/` with a package of stages:
+Counts grape bunches toward yield on the **surveyed row only**, keeping bunches that are **full or partly
+occluded** and dropping sparse or damaged ones. It replaces the notebook in `../Deep Learning/` with a package of stages:
 
 ```
 photo ─► detect ─► rowfilter ─► quality ─► count ─► per-row / per-section totals
          every     near row      countable
-         bunch     vs. behind    (full) only
+         bunch     vs. behind    (full or occluded)
 ```
 
 ## Layout
@@ -88,7 +88,8 @@ local commands and the release steps.
    - `quality`: select, values `full`, `sparse`, `damaged`, `occluded`
 
    Box every visible bunch, background row included, and mark it `far`. Use `occluded` when a leaf
-   hides enough of the bunch that you can't judge fullness. Export as **COCO 1.0**.
+   hides enough of the bunch that you can't judge fullness; occluded bunches are still counted, like `full`
+   ones. Only `sparse` and `damaged` are left out. Export as **COCO 1.0**.
 3. **Export training data.** Run
    `python scripts/export_dataset.py --coco <export>.json --capture <capture folder> --out datasets/<name>`.
    It writes the YOLO detector dataset (split by section) and the quality crops.
@@ -96,7 +97,7 @@ local commands and the release steps.
 5. **Pick the confidence threshold on val, never on test.** Run the detector over the val split, keep the
    scores, and call `grapevision.eval.tune_threshold`. Put the result in `detector.conf`.
 6. **Count.** Run `python scripts/run_pipeline.py --weights runs/detector/weights/best.pt --level row`.
-   It writes annotated images (green = counted, yellow = near row but not full, gray = background row)
+   It writes annotated images (green = counted, yellow = near row but not counted (sparse or damaged), gray = background row)
    and per-image and per-row CSVs to `outputs/`.
 
 ## Things to check

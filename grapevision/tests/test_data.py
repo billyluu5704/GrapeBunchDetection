@@ -13,9 +13,9 @@ from grapevision.data import (
     scan_capture,
     write_catalog,
 )
-from grapevision.data.annotations import include_near
+from grapevision.data.annotations import BunchLabel, include_near
 from grapevision.data.catalog import parse_capture_name
-from grapevision.types import FAR, FULL, NEAR, SPARSE
+from grapevision.types import DAMAGED, FAR, FULL, NEAR, OCCLUDED, SPARSE, Box, Detection
 
 
 def test_parse_capture_name():
@@ -135,3 +135,12 @@ def test_export_yolo_split(capture, tmp_path):
     assert cls == 0
     assert (cx, cy, w, h) == pytest.approx((20 / 80, 20 / 60, 20 / 80, 20 / 60))
     assert (tmp_path / "ds/train/images/row5__Section1__sequence1.jpg").exists()
+
+
+def test_countable_is_near_and_full_or_occluded():
+    box = Box(0, 0, 10, 10)
+    cases = {(NEAR, FULL): True, (NEAR, OCCLUDED): True, (NEAR, SPARSE): False, (NEAR, DAMAGED): False,
+             (NEAR, None): False, (FAR, FULL): False, (FAR, OCCLUDED): False}
+    for (row, quality), expected in cases.items():
+        assert BunchLabel(box, row, quality).countable is expected
+        assert Detection(box, 0.9, row=row, quality=quality).countable is expected

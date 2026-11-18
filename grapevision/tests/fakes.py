@@ -65,6 +65,13 @@ def install_fake_ultralytics(monkeypatch: pytest.MonkeyPatch) -> dict:
         def __init__(self, weights: str):
             calls["weights"] = weights
 
+        def predict(self, image: Any, **kwargs: Any) -> list[SimpleNamespace]:
+            calls["predict"] = kwargs
+            boxes = SimpleNamespace(
+                xyxy=SimpleNamespace(tolist=lambda: [[1, 2, 30, 40]]), conf=SimpleNamespace(tolist=lambda: [0.7])
+            )
+            return [SimpleNamespace(boxes=boxes)]
+
         def train(self, **kwargs: Any) -> str:
             calls["train"] = kwargs
             return "trained"

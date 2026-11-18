@@ -71,6 +71,8 @@ def build_pipeline(cfg: dict[str, Any]) -> CountingPipeline:
         det_cfg["tile_overlap"],
         det_cfg["conf_floor"],
         det_cfg["device"],
+        det_cfg.get("postprocess_type", "NMM"),
+        det_cfg.get("postprocess_match_threshold", 0.5),
     )
 
     rf_cfg = cfg["row_filter"]

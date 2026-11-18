@@ -1,0 +1,10 @@
+# Fine-tune the Zenodo detector on the West Zone 2 farm photos (small bunches, ~3% of image width).
+#   python scripts/train_detector.py --config configs/farm_finetune.yaml --data datasets/west_zone2_near/detector/data.yaml ...
+detector:
+  imgsz: 1280          # bunches are ~35x50 px in 1215x911 photos; keep the native resolution
+  tile_size: 640
+
+train:
+  batch: 8             # only 11 training images
+  scale: 0.3           # Zenodo-tuned 0.9 would shrink the already tiny bunches to a few pixels
+  patience: 40

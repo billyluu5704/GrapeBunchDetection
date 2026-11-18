@@ -25,7 +25,7 @@ it.
 |---|---|---|
 | `total` | all detections above `conf` | every bunch the detector found |
 | `near` | `d.near` | on the surveyed row |
-| `countable` | `d.countable` (near **and** `quality == full`) | **counts toward yield** |
+| `countable` | `d.countable` (near **and** `quality` is `full` or `occluded`) | **counts toward yield** |
 
 `total − near` = background-row bunches removed; `near − countable` = near-row bunches judged not full.
 Keeping all three makes it obvious which stage changed a number.

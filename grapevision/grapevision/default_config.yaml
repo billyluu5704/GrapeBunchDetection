@@ -24,7 +24,9 @@ detector:
   tile_overlap: 0.25
   conf_floor: 0.05                   # inference keeps everything above this; the real threshold is tuned on val
   conf: 0.25                         # replace with the value eval.tune_threshold picks on the val split
-  device: "cuda:0"
+  device: "cuda:0"                   # one device; inference uses it. Train on several GPUs with train_detector.py --device 0,1 (batch must divide evenly)
+  postprocess_type: NMM              # SAHI tile merge: NMM | GREEDYNMM | NMS | LSNMS; changes counts, tune on val
+  postprocess_match_threshold: 0.5   # overlap above which two tile boxes are treated as one bunch
 
 row_filter:
   method: depth                      # depth | none
@@ -36,3 +38,12 @@ row_filter:
 quality:
   method: accept_all                 # accept_all | size
   min_area_frac: 0.002               # size baseline: boxes smaller than this fraction of the image are "sparse"
+
+train:                               # passed straight to Ultralytics' trainer (scripts/train_detector.py)
+  batch: 32                          # single GPU; with --device 0,1 use a multiple of the GPU count (-1 auto-batch is single-GPU only)
+  patience: 30                       # early-stop after this many epochs without val improvement
+  cache: false                       # true/"ram" or "disk" to speed up epochs
+  cos_lr: true
+  close_mosaic: 15                   # last N epochs without mosaic
+  scale: 0.9                         # random scale gain (Ultralytics default 0.5); Zenodo bunches are far larger than field ones
+  amp: true
