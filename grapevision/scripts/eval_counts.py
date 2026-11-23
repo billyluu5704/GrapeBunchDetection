@@ -18,6 +18,7 @@ from pathlib import Path
 from grapevision.config import load_config, resolve_path
 from grapevision.detect import FullImageDetector, SahiDetector
 from grapevision.eval import bootstrap_ci, count_metrics, detection_metrics, tune_threshold
+from grapevision.gpu import use_best_gpu
 from grapevision.io import load_image
 from grapevision.types import Box, Detection
 
@@ -58,10 +59,15 @@ def main() -> None:
     parser.add_argument("--test-split", default="test")
     parser.add_argument("--no-sahi", action="store_true", help="one full-image pass instead of SAHI tiling")
     parser.add_argument("--limit", type=int, default=None, help="cap images per split (quick check)")
+    parser.add_argument("--device", default=None, help='e.g. "cuda:1", or "auto" = least-loaded GPU (default: detector.device)')
     parser.add_argument("--config", default=None)
     args = parser.parse_args()
     cfg = load_config(args.config)
-    det = cfg["detector"]
+    det = dict(cfg["detector"])
+    if args.device == "auto":
+        det["device"] = "cuda:" + use_best_gpu()
+    elif args.device:
+        det["device"] = args.device
     detector: SahiDetector | FullImageDetector
     if args.no_sahi:
         detector = FullImageDetector(args.weights, det["imgsz"], det["conf_floor"], det["device"])
