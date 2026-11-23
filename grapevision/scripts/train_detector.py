@@ -14,6 +14,7 @@ import argparse
 
 from grapevision.config import load_config, resolve_path
 from grapevision.detect import train_detector, write_data_yaml
+from grapevision.gpu import use_best_gpu
 
 
 def main() -> None:
@@ -26,7 +27,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--weights", default=None, help="starting checkpoint (default: detector.weights)")
     parser.add_argument("--imgsz", type=int, default=None)
-    parser.add_argument("--device", default=None, help='e.g. "0", "0,1,2" or "cpu" (default: detector.device)')
+    parser.add_argument("--device", default=None, help='e.g. "0", "0,1,2", "cpu" or "auto" = least-loaded GPU (default: detector.device)')
     parser.add_argument("--batch", type=int, default=None)
     parser.add_argument("--patience", type=int, default=None)
     parser.add_argument(
@@ -53,6 +54,8 @@ def main() -> None:
         weights = str(resolve_path("runs") / args.name / "weights" / "last.pt")
         train_args["resume"] = True
     device = args.device if args.device is not None else det["device"].split(":")[-1]
+    if device == "auto":
+        device = use_best_gpu()
     train_detector(
         data,
         weights=weights,

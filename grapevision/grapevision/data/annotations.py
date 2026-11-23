@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from grapevision.types import COUNTED_QUALITIES, FAR, NEAR, QUALITY_VALUES, ROW_VALUES, Box
+from grapevision.types import COUNTED_QUALITIES, FAR, FULL, NEAR, SPARSE, QUALITY_VALUES, ROW_VALUES, Box
 
 
 @dataclass
@@ -84,6 +84,11 @@ def include_all(_: BunchLabel) -> bool:
 
 def include_near(b: BunchLabel) -> bool:
     return b.row != FAR
+
+
+def include_visible(b: BunchLabel) -> bool:
+    """Full and sparse bunches only (near and far rows); occluded, damaged and unjudged boxes are dropped."""
+    return b.quality in (FULL, SPARSE)
 
 
 def export_yolo_split(
